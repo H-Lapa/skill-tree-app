@@ -1,0 +1,45 @@
+.auth-container {
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+  
+  .auth-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .divider {
+    text-align: center;
+    margin: 1rem 0;
+    position: relative;
+  }
+  
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ddd;
+    position: absolute;
+    top: 50%;
+    width: 45%;
+  }
+  
+  .divider::before {
+    right: 55%;
+  }
+  
+  .divider::after {
+    left: 55%;
+  }
+  
+  input {
+    width: 100%;
+    margin: 0.5rem 0;
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
