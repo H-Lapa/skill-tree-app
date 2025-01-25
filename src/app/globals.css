@@ -90,3 +90,27 @@ button:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Add to existing transitions */
+.sidebar-transition {
+  transition: transform 0.3s ease-in-out;
+  z-index: 40;
+}
+
+/* Settings menu z-index */
+.relative {
+  z-index: 50;
+}
+
+/* Modal z-index */
+.fixed.inset-0 {
+  z-index: 100;
+}
+
+/* Add this rule */
+.fixed.right-0 {
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: 384px; /* Match sidebar width (w-96 = 384px) */
+}

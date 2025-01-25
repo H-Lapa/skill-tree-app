@@ -4,8 +4,7 @@ import 'reactflow/dist/style.css';
 import { useSkillTree } from '@/lib/useSkillTree';
 import Sidebar from './Sidebar';
 
-export default function TreeVisualiser({ treeId }) {
-  const [selectedNode, setSelectedNode] = useState(null);
+export default function TreeVisualiser({ treeId, onNodeSelect }) {
   const { nodes: firebaseNodes, loading } = useSkillTree(treeId);
 
   const nodes = firebaseNodes.map((node) => ({
@@ -22,28 +21,24 @@ export default function TreeVisualiser({ treeId }) {
     }))
   );
 
-  const handleNodeClick = (event, node) => {
-    setSelectedNode(node.data);
-  };
+  const handleNodeClick = (event, node) => onNodeSelect(node.data);
 
   if (loading) return <div>Loading skill tree...</div>;
 
   return (
     <div style={{ display: 'flex', width: '100vw', height: '100vh' }}>
-      <div style={{ flex: 3 }}>
+      
         <ReactFlow 
           nodes={nodes} 
           edges={edges} 
           onNodeClick={handleNodeClick}
           fitView
+          style={{ zIndex: 10 }}
         >
           <Background />
           <Controls />
         </ReactFlow>
-      </div>
-      <div style={{ flex: 1, padding: '20px', borderLeft: '1px solid #ddd' }}>
-        <Sidebar node={selectedNode} />
-      </div>
+
     </div>
   );
 }
