@@ -18,6 +18,7 @@ export default function NewTreePage() {
     setLoading(true);
     setError('');
 
+    // Validation
     if (!title.trim()) {
       setError('Please enter a title');
       setLoading(false);
@@ -31,17 +32,33 @@ export default function NewTreePage() {
     }
 
     try {
+      // Generate unique ID for root node
+      const rootNodeId = `node_${Date.now()}`;
+
+      // Create tree document
       const newTree = {
         title: title.trim(),
         ownerId: user.uid,
+        rootNodeId,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        nodes: [],
       };
 
       const treesCollection = collection(db, 'skillTrees');
       const newTreeRef = await addDoc(treesCollection, newTree);
-      
+
+      // Create root node in nodes subcollection
+      await addDoc(collection(db, `skillTrees/${newTreeRef.id}/nodes`), {
+        id: rootNodeId,
+        title: title.trim(),
+        description: "Root node of the skill tree",
+        position: { x: 0, y: 0 }, // Starting position
+        children: [], // No children initially
+        resources: { videos: [], articles: [] }, // Empty resources
+        createdAt: serverTimestamp(),
+      });
+
+      // Redirect to the new tree's page
       router.push(`/tree/${newTreeRef.id}`);
     } catch (err) {
       console.error('Error creating tree:', err);
@@ -68,17 +85,29 @@ export default function NewTreePage() {
               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter tree title"
               disabled={loading}
+              required
             />
           </div>
 
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+          {error && (
+            <p className="text-red-600 text-sm">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400"
+            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating...' : 'Create Tree'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                Creating...
+              </span>
+            ) : (
+              'Create Tree'
+            )}
           </button>
         </form>
       </div>
