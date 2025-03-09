@@ -5,6 +5,7 @@ import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import TreeVisualiser from '@/components/SkillTree/TreeVisualiser';
 import Sidebar from '@/components/SkillTree/Sidebar';
+import SettingSidebar from '@/components/SkillTree/SettingSidebar';
 import { ChevronLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { useClickOutside } from '@/hooks/useClickOutside';
 
@@ -19,11 +20,16 @@ export default function TreePage() {
   const [newTitle, setNewTitle] = useState('');
 
   // Refs for click outside handling
-  const settingsRef = useRef(null);
+  const settingsSidebarRef = useRef(null);
+  const settingsButtonRef = useRef(null);
   const renameModalRef = useRef(null);
   const deleteModalRef = useRef(null);
 
-  useClickOutside(settingsRef, () => setShowSettings(false));
+  useClickOutside(settingsSidebarRef, (event) => {
+    // Don't close if clicking the settings button
+    if (settingsButtonRef.current?.contains(event.target)) return;
+    setShowSettings(false);
+  });
   useClickOutside(renameModalRef, () => setShowRenameModal(false));
   useClickOutside(deleteModalRef, () => setShowDeleteModal(false));
 
@@ -72,38 +78,18 @@ export default function TreePage() {
           <h1 className="text-xl font-semibold text-gray-900">{treeTitle}</h1>
         </div>
 
-        <div className="relative" ref={settingsRef}>
+        <div className="relative">
           <button
-            onClick={() => setShowSettings(!showSettings)}
+            ref={settingsButtonRef}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSettings(!showSettings);
+              setSelectedNode(null);
+            }}
             className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 relative z-10"
           >
             <Cog6ToothIcon className="w-5 h-5" />
           </button>
-
-          {showSettings && (
-            <div className="fixed right-4 top-16 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-              <div className="p-2">
-                <button
-                  onClick={() => {
-                    setShowRenameModal(true);
-                    setShowSettings(false);
-                  }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-100 rounded-md"
-                >
-                  Rename Tree
-                </button>
-                <button
-                  onClick={() => {
-                    setShowDeleteModal(true);
-                    setShowSettings(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-red-600 hover:bg-red-50 rounded-md"
-                >
-                  Delete Tree
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </header>
 
@@ -117,7 +103,7 @@ export default function TreePage() {
           />
         </div>
 
-        {/* Sidebar */}
+        {/* Node Sidebar */}
         <div className={`absolute right-0 top-0 h-full transform ${
           selectedNode ? 'translate-x-0' : 'translate-x-full'
         } transition-transform duration-300 ease-in-out shadow-xl z-[1000] w-96`}>
@@ -128,11 +114,28 @@ export default function TreePage() {
             />
           </div>
         </div>
+
+        {/* Settings Sidebar */}
+        <div className={`absolute right-0 top-0 h-full transform ${
+          showSettings ? 'translate-x-0' : 'translate-x-full'
+        } transition-transform duration-300 ease-in-out shadow-xl z-[1000] w-64`} ref={settingsSidebarRef}>
+          <SettingSidebar
+            onClose={() => setShowSettings(false)}
+            onRename={() => {
+              setShowRenameModal(true);
+              setShowSettings(false);
+            }}
+            onDelete={() => {
+              setShowDeleteModal(true);
+              setShowSettings(false);
+            }}
+          />
+        </div>
       </div>
 
       {/* Rename Modal */}
       {showRenameModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1001]">
           <div ref={renameModalRef} className="bg-white p-6 rounded-lg w-96">
             <h3 className="text-lg font-semibold mb-4">Rename Tree</h3>
             <input
@@ -161,7 +164,7 @@ export default function TreePage() {
 
       {/* Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1001]">
           <div ref={deleteModalRef} className="bg-white p-6 rounded-lg w-96">
             <h3 className="text-lg font-semibold mb-4">Delete Tree</h3>
             <p className="text-gray-600 mb-6">This action cannot be undone.</p>
