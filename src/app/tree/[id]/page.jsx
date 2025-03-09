@@ -21,10 +21,15 @@ export default function TreePage() {
 
   // Refs for click outside handling
   const settingsSidebarRef = useRef(null);
+  const settingsButtonRef = useRef(null);
   const renameModalRef = useRef(null);
   const deleteModalRef = useRef(null);
 
-  useClickOutside(settingsSidebarRef, () => setShowSettings(false));
+  useClickOutside(settingsSidebarRef, (event) => {
+    // Don't close if clicking the settings button
+    if (settingsButtonRef.current?.contains(event.target)) return;
+    setShowSettings(false);
+  });
   useClickOutside(renameModalRef, () => setShowRenameModal(false));
   useClickOutside(deleteModalRef, () => setShowDeleteModal(false));
 
@@ -75,9 +80,11 @@ export default function TreePage() {
 
         <div className="relative">
           <button
-            onClick={() => {
+            ref={settingsButtonRef}
+            onClick={(e) => {
+              e.stopPropagation();
               setShowSettings(!showSettings);
-              setSelectedNode(null); // Close node sidebar if open
+              setSelectedNode(null);
             }}
             className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 relative z-10"
           >
