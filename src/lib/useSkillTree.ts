@@ -3,8 +3,8 @@ import { collection, doc, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
 
 export const useSkillTree = (treeId: string) => {
-  const [tree, setTree] = useState<any>(null);
-  const [nodes, setNodes] = useState<any[]>([]);
+  const [tree, setTree] = useState<unknown>(null);
+  const [nodes, setNodes] = useState<unknown[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
