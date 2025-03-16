@@ -64,6 +64,12 @@ export default function TreePage() {
     }
   };
 
+  // Update node selection to close settings sidebar
+  const handleNodeSelect = (node) => {
+    setSelectedNode(node);
+    setShowSettings(false);
+  };
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
@@ -84,7 +90,7 @@ export default function TreePage() {
             onClick={(e) => {
               e.stopPropagation();
               setShowSettings(!showSettings);
-              setSelectedNode(null);
+              setSelectedNode(null); // Close node sidebar when opening settings
             }}
             className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 relative z-10"
           >
@@ -99,14 +105,14 @@ export default function TreePage() {
         <div className="flex-1 relative">
           <TreeVisualiser 
             treeId={id}
-            onNodeSelect={setSelectedNode}
+            onNodeSelect={handleNodeSelect}
           />
         </div>
 
         {/* Node Sidebar */}
         <div className={`absolute right-0 top-0 h-full transform ${
-          selectedNode ? 'translate-x-0' : 'translate-x-full'
-        } transition-transform duration-300 ease-in-out shadow-xl z-[1000] w-96`}>
+          selectedNode && !showSettings ? 'translate-x-0' : 'translate-x-full'
+        } transition-transform duration-300 ease-in-out shadow-xl z-[1000]`}>
           <div className="h-full bg-white border-l border-gray-200">
             <NodeSidebar 
               node={selectedNode}
@@ -118,7 +124,7 @@ export default function TreePage() {
         {/* Settings Sidebar */}
         <div className={`absolute right-0 top-0 h-full transform ${
           showSettings ? 'translate-x-0' : 'translate-x-full'
-        } transition-transform duration-300 ease-in-out shadow-xl z-[1000] w-64`} ref={settingsSidebarRef}>
+        } transition-transform duration-300 ease-in-out shadow-xl z-[1001]`} ref={settingsSidebarRef}>
           <TreeSettingsSidebar
             onClose={() => setShowSettings(false)}
             onRename={() => {
