@@ -4,8 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import TreeVisualiser from '@/components/SkillTree/TreeVisualiser';
-import Sidebar from '@/components/SkillTree/Sidebar';
-import SettingSidebar from '@/components/SkillTree/SettingSidebar';
+import NodeSidebar from '@/components/SkillTree/sidebars/NodeSidebar';
+import TreeSettingsSidebar from '@/components/SkillTree/sidebars/TreeSettingsSidebar';
 import { ChevronLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { useClickOutside } from '@/hooks/useClickOutside';
 
@@ -108,7 +108,7 @@ export default function TreePage() {
           selectedNode ? 'translate-x-0' : 'translate-x-full'
         } transition-transform duration-300 ease-in-out shadow-xl z-[1000] w-96`}>
           <div className="h-full bg-white border-l border-gray-200">
-            <Sidebar 
+            <NodeSidebar 
               node={selectedNode}
               onClose={() => setSelectedNode(null)}
             />
@@ -119,7 +119,7 @@ export default function TreePage() {
         <div className={`absolute right-0 top-0 h-full transform ${
           showSettings ? 'translate-x-0' : 'translate-x-full'
         } transition-transform duration-300 ease-in-out shadow-xl z-[1000] w-64`} ref={settingsSidebarRef}>
-          <SettingSidebar
+          <TreeSettingsSidebar
             onClose={() => setShowSettings(false)}
             onRename={() => {
               setShowRenameModal(true);

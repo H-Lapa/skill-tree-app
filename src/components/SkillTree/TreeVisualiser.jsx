@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback } from 'react';
 import ReactFlow, { Background, Controls, MiniMap } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useSkillTree } from '@/lib/useSkillTree';
-import Sidebar from './Sidebar';
 
 export default function TreeVisualiser({ treeId, onNodeSelect }) {
   const { tree, nodes: firebaseNodes, loading } = useSkillTree(treeId);

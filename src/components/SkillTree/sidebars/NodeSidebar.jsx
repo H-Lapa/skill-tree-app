@@ -1,22 +1,14 @@
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import BaseSidebar from '../common/BaseSidebar';
 
-export default function Sidebar({ node, onClose }) {
+export default function NodeSidebar({ node, onClose }) {
+  if (!node) return null;
+
   return (
-    <div className="w-96 bg-white border-l border-gray-200 h-full flex flex-col shadow-lg">
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-        <h2 className="text-lg font-semibold">{node?.title}</h2>
-        <button
-            onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors duration-200"
-            >
-            <XMarkIcon className="w-5 h-5" />
-        </button>
-      </div>
-
+    <BaseSidebar title={node.title} onClose={onClose}>
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <div>
           <p className="text-gray-600 mt-2">
-            {node?.description || 'No description'}
+            {node.description || 'No description'}
           </p>
         </div>
 
@@ -56,6 +48,6 @@ export default function Sidebar({ node, onClose }) {
           </div>
         )}
       </div>
-    </div>
+    </BaseSidebar>
   );
-}
+} 
