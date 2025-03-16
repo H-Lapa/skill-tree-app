@@ -3,11 +3,11 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import TreeVisualiser from '@/components/SkillTree/TreeVisualiser';
-import NodeSidebar from '@/components/SkillTree/sidebars/NodeSidebar';
-import TreeSettingsSidebar from '@/components/SkillTree/sidebars/TreeSettingsSidebar';
+import TreeVisualiser from '@/features/skill-tree/components/tree/TreeVisualiser';
+import NodeSidebar from '@/features/skill-tree/components/sidebars/NodeSidebar';
+import TreeSettingsSidebar from '@/features/skill-tree/components/sidebars/TreeSettingsSidebar';
 import { ChevronLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
-import { useClickOutside } from '@/hooks/useClickOutside';
+import { useClickOutside } from '@/shared/hooks/useClickOutside';
 
 export default function TreePage() {
   const { id } = useParams();

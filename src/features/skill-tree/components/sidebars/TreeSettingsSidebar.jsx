@@ -1,4 +1,4 @@
-import BaseSidebar from '../common/BaseSidebar';
+import BaseSidebar from '@/shared/components/BaseSidebar';
 
 export default function TreeSettingsSidebar({ onClose, onRename, onDelete }) {
   return (

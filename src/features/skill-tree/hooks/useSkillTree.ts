@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, doc, onSnapshot } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '@/lib/firebase';
 
 export const useSkillTree = (treeId: string) => {
   const [tree, setTree] = useState<unknown>(null);
