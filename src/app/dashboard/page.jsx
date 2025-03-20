@@ -19,7 +19,7 @@ export default function Dashboard() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setTrees(snapshot.docs.map(doc => ({ 
-        id: doc.id, 
+        id: doc.id,
         ...doc.data() 
       })));
     });
