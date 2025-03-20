@@ -3,11 +3,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import TreeVisualiser from '@/components/SkillTree/TreeVisualiser';
-import Sidebar from '@/components/SkillTree/Sidebar';
-import SettingSidebar from '@/components/SkillTree/SettingSidebar';
-import { ChevronLeftIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
-import { useClickOutside } from '@/hooks/useClickOutside';
+import TreeVisualiser from '@/features/skill-tree/components/tree/TreeVisualiser';
+import NodeSidebar from '@/features/skill-tree/components/sidebars/NodeSidebar';
+import TreeSettingsSidebar from '@/features/skill-tree/components/sidebars/TreeSettingsSidebar';
+import { ChevronLeftIcon, Cog6ToothIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { useClickOutside } from '@/shared/hooks/useClickOutside';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function TreePage() {
   const { id } = useParams();
@@ -18,6 +19,8 @@ export default function TreePage() {
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [nodes, setNodes] = useState([]);
+  const [isAddingNode, setIsAddingNode] = useState(false);
 
   // Refs for click outside handling
   const settingsSidebarRef = useRef(null);
@@ -26,7 +29,6 @@ export default function TreePage() {
   const deleteModalRef = useRef(null);
 
   useClickOutside(settingsSidebarRef, (event) => {
-    // Don't close if clicking the settings button
     if (settingsButtonRef.current?.contains(event.target)) return;
     setShowSettings(false);
   });
@@ -38,7 +40,9 @@ export default function TreePage() {
       const treeRef = doc(db, 'skillTrees', id);
       const treeSnap = await getDoc(treeRef);
       if (treeSnap.exists()) {
-        setTreeTitle(treeSnap.data().title);
+        const treeData = treeSnap.data();
+        setTreeTitle(treeData.title);
+        setNodes(treeData.nodes || []);
       }
     };
     fetchTree();
@@ -61,6 +65,93 @@ export default function TreePage() {
       router.push('/dashboard');
     } catch (error) {
       console.error('Error deleting tree:', error);
+    }
+  };
+
+  const handleNodeSelect = (node) => {
+    if (selectedNode && selectedNode.id === node.id) {
+      setSelectedNode(null);
+    } else {
+      setSelectedNode(node);
+    }
+    setShowSettings(false);
+  };
+
+  const handleAddNode = async () => {
+    try {
+      setIsAddingNode(true);
+
+      const treeRef = doc(db, 'skillTrees', id);
+      const treeSnap = await getDoc(treeRef);
+      if (!treeSnap.exists()) return;
+
+      const treeData = treeSnap.data();
+      const nodes = treeData.nodes || [];
+
+      let newNodePosition = { x: 0, y: 0 };
+
+      if (nodes.length > 0) {
+        let lowestNode = nodes[0];
+        for (const node of nodes) {
+          if (node.position.y > lowestNode.position.y) {
+            lowestNode = node;
+          }
+        }
+        newNodePosition = { x: lowestNode.position.x, y: lowestNode.position.y + 100 };
+      }
+
+      const newNode = {
+        id: uuidv4(),
+        title: 'New Node',
+        description: '',
+        position: newNodePosition,
+        children: [],
+      };
+
+      const updatedNodes = [...nodes, newNode];
+
+      if (nodes.length > 0) {
+        const updatedLowestNode = {
+          ...nodes[0],
+          children: [...(nodes[0].children || []), newNode.id],
+        };
+
+        const updatedNodesWithConnection = updatedNodes.map((node) =>
+          node.id === updatedLowestNode.id ? updatedLowestNode : node
+        );
+
+        await updateDoc(treeRef, { nodes: updatedNodesWithConnection });
+        setNodes(updatedNodesWithConnection);
+      } else {
+        await updateDoc(treeRef, { nodes: updatedNodes });
+        setNodes(updatedNodes);
+      }
+
+      setSelectedNode(newNode);
+    } catch (error) {
+      console.error('Error adding node:', error);
+      setIsAddingNode(false);
+    }
+  };
+
+  const handleSaveNode = async (updatedNode) => {
+    try {
+      const treeRef = doc(db, 'skillTrees', id);
+      const treeSnap = await getDoc(treeRef);
+      if (!treeSnap.exists()) return;
+
+      const treeData = treeSnap.data();
+      const nodes = treeData.nodes || [];
+
+      const updatedNodes = nodes.map((node) =>
+        node.id === updatedNode.id ? updatedNode : node
+      );
+
+      await updateDoc(treeRef, { nodes: updatedNodes });
+      setNodes(updatedNodes);
+      setIsAddingNode(false);
+    } catch (error) {
+      console.error('Error saving node:', error);
     }
   };
 
@@ -97,20 +188,40 @@ export default function TreePage() {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Tree Visualization */}
         <div className="flex-1 relative">
+          {/* Add Node Button */}
+          {!selectedNode && !showSettings && (
+            <div className="absolute top-4 right-4 z-10">
+              <button
+                onClick={handleAddNode}
+                disabled={isAddingNode}
+                className={`p-2 rounded-lg ${
+                  isAddingNode ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'hover:bg-gray-100 text-gray-600 bg-white shadow-md'
+                }`}
+              >
+                <PlusIcon className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+
           <TreeVisualiser 
+            key={nodes.length}
             treeId={id}
-            onNodeSelect={setSelectedNode}
+            nodes={nodes}
+            onNodeSelect={handleNodeSelect}
+            setShowSettings={setSelectedNode}
+            setSelectedNode={setSelectedNode}
           />
         </div>
 
         {/* Node Sidebar */}
-        <div className={`absolute right-0 top-0 h-full transform ${
+        <div className={`absolute right-0 top-0 h-full w-96 transform ${
           selectedNode ? 'translate-x-0' : 'translate-x-full'
-        } transition-transform duration-300 ease-in-out shadow-xl z-[1000] w-96`}>
+        } transition-transform duration-300 ease-in-out shadow-xl z-[1001]`}>
           <div className="h-full bg-white border-l border-gray-200">
-            <Sidebar 
+            <NodeSidebar 
               node={selectedNode}
               onClose={() => setSelectedNode(null)}
+              onSave={handleSaveNode}
             />
           </div>
         </div>
@@ -118,8 +229,8 @@ export default function TreePage() {
         {/* Settings Sidebar */}
         <div className={`absolute right-0 top-0 h-full transform ${
           showSettings ? 'translate-x-0' : 'translate-x-full'
-        } transition-transform duration-300 ease-in-out shadow-xl z-[1000] w-64`} ref={settingsSidebarRef}>
-          <SettingSidebar
+        } transition-transform duration-300 ease-in-out shadow-xl z-[1001]`} ref={settingsSidebarRef}>
+          <TreeSettingsSidebar
             onClose={() => setShowSettings(false)}
             onRename={() => {
               setShowRenameModal(true);
