@@ -25,7 +25,10 @@ export default function TreeVisualiser({ treeId, nodes, onNodeSelect, setShowSet
       <ReactFlow
         nodes={rfNodes}
         edges={edges}
-        onNodeClick={(event, node) => onNodeSelect(node)}
+        onNodeClick={(event, rfNode) => {
+          const originalNode = nodes.find(node => node.id === rfNode.id);
+          onNodeSelect(originalNode);
+        }}
         fitView
         fitViewOptions={{ padding: 0.5 }}
         nodeOrigin={[0.5, 0.5]} // Center nodes
