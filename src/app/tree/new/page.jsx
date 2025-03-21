@@ -5,6 +5,7 @@ import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function NewTreePage() {
   const [user] = useAuthState(auth);
@@ -33,30 +34,28 @@ export default function NewTreePage() {
 
     try {
       // Generate unique ID for root node
-      const rootNodeId = `node_${Date.now()}`;
+      const rootNodeId = uuidv4();
 
-      // Create tree document
+      // Create root node
+      const rootNode = {
+        id: rootNodeId,
+        title: title.trim(),
+        description: "Root node of the skill tree",
+        position: { x: 0, y: 0 },
+        children: [],
+      };
+
+      // Create tree document with nodes array
       const newTree = {
         title: title.trim(),
         ownerId: user.uid,
-        rootNodeId,
+        nodes: [rootNode],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       };
 
       const treesCollection = collection(db, 'skillTrees');
       const newTreeRef = await addDoc(treesCollection, newTree);
-
-      // Create root node in nodes subcollection
-      await addDoc(collection(db, `skillTrees/${newTreeRef.id}/nodes`), {
-        id: rootNodeId,
-        title: title.trim(),
-        description: "Root node of the skill tree",
-        position: { x: 0, y: 0 }, // Starting position
-        children: [], // No children initially
-        resources: { videos: [], articles: [] }, // Empty resources
-        createdAt: serverTimestamp(),
-      });
 
       // Redirect to the new tree's page
       router.push(`/tree/${newTreeRef.id}`);
