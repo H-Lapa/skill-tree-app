@@ -6,7 +6,7 @@ import { db } from '@/lib/firebase';
 import TreeVisualiser from '@/features/skill-tree/components/tree/TreeVisualiser';
 import NodeSidebar from '@/features/skill-tree/components/sidebars/NodeSidebar';
 import TreeSettingsSidebar from '@/features/skill-tree/components/sidebars/TreeSettingsSidebar';
-import { ChevronLeftIcon, Cog6ToothIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { ChevronLeftIcon, Cog6ToothIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useClickOutside } from '@/shared/hooks/useClickOutside';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -21,6 +21,7 @@ export default function TreePage() {
   const [newTitle, setNewTitle] = useState('');
   const [nodes, setNodes] = useState([]);
   const [isAddingNode, setIsAddingNode] = useState(false);
+  const [nodeToDelete, setNodeToDelete] = useState(null);
 
   // Refs for click outside handling
   const settingsSidebarRef = useRef(null);
@@ -155,6 +156,49 @@ export default function TreePage() {
     }
   };
 
+  const handleDeleteNode = async (nodeToDelete) => {
+    try {
+      const treeRef = doc(db, 'skillTrees', id);
+      const treeSnap = await getDoc(treeRef);
+      if (!treeSnap.exists()) return;
+
+      const treeData = treeSnap.data();
+      const nodes = treeData.nodes || [];
+
+      // Remove the node from its parent's children array
+      const updatedNodes = nodes.map(node => {
+        if (node.children?.includes(nodeToDelete.id)) {
+          return {
+            ...node,
+            children: node.children.filter(childId => childId !== nodeToDelete.id)
+          };
+        }
+        return node;
+      });
+
+      // Remove the node itself
+      const filteredNodes = updatedNodes.filter(node => node.id !== nodeToDelete.id);
+
+      await updateDoc(treeRef, { nodes: filteredNodes });
+      setNodes(filteredNodes);
+      setSelectedNode(null);
+    } catch (error) {
+      console.error('Error deleting node:', error);
+    }
+  };
+
+  const handleDeleteRequest = (node) => {
+    setNodeToDelete(node);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!nodeToDelete) return;
+    await handleDeleteNode(nodeToDelete);
+    setShowDeleteModal(false);
+    setNodeToDelete(null);
+  };
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
@@ -222,6 +266,7 @@ export default function TreePage() {
               node={selectedNode}
               onClose={() => setSelectedNode(null)}
               onSave={handleSaveNode}
+              onDelete={handleDeleteRequest}
             />
           </div>
         </div>
@@ -273,24 +318,34 @@ export default function TreePage() {
         </div>
       )}
 
-      {/* Delete Modal */}
+      {/* Delete Node Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1001]">
-          <div ref={deleteModalRef} className="bg-white p-6 rounded-lg w-96">
-            <h3 className="text-lg font-semibold mb-4">Delete Tree</h3>
-            <p className="text-gray-600 mb-6">This action cannot be undone.</p>
-            <div className="flex justify-end gap-2">
+        <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center" style={{ zIndex: 9999 }}>
+          <div className="bg-white/90 p-8 rounded-xl shadow-2xl max-w-md w-full mx-4 relative backdrop-blur-md">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-red-100 p-2 rounded-full">
+                <TrashIcon className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">Delete Node</h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete "{nodeToDelete?.title}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
               <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setNodeToDelete(null);
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={handleDeleteTree}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
-                Confirm Delete
+                Delete
               </button>
             </div>
           </div>

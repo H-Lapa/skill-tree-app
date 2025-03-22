@@ -1,8 +1,8 @@
 import BaseSidebar from '@/shared/components/BaseSidebar';
-import { PencilIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useState, useEffect } from 'react'; // Add useEffect
+import { PencilIcon, XMarkIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
 
-export default function NodeSidebar({ node, onClose, onSave }) {
+export default function NodeSidebar({ node, onClose, onSave, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(node?.title || '');
   const [description, setDescription] = useState(node?.description || '');
@@ -23,12 +23,20 @@ export default function NodeSidebar({ node, onClose, onSave }) {
       title={node?.title || 'Node Details'}
       onClose={onClose}
       headerActions={
-        <button
-          onClick={() => setIsEditing(!isEditing)}
-          className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
-        >
-          <PencilIcon className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
+          >
+            <PencilIcon className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => onDelete(node)}
+            className="p-2 hover:bg-red-50 rounded-lg text-red-600"
+          >
+            <TrashIcon className="w-5 h-5" />
+          </button>
+        </div>
       }
     >
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
