@@ -129,6 +129,7 @@ export default function TreePage() {
       }
 
       setSelectedNode(newNode);
+      setIsAddingNode(false);
     } catch (error) {
       console.error('Error adding node:', error);
       setIsAddingNode(false);
@@ -233,8 +234,8 @@ export default function TreePage() {
         {/* Tree Visualization */}
         <div className="flex-1 relative">
           {/* Add Node Button */}
-          {!selectedNode && !showSettings && (
-            <div className="absolute top-4 right-4 z-10">
+          {!showSettings && (
+            <div className="absolute top-4 left-4 z-10">
               <button
                 onClick={handleAddNode}
                 disabled={isAddingNode}
