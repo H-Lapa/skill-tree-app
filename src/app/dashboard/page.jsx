@@ -1,9 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, or } from 'firebase/firestore';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, db } from '@/lib/firebase';
 import Link from 'next/link';
+import { PlusIcon, FolderIcon } from '@heroicons/react/24/outline';
 
 export default function Dashboard() {
   const [user] = useAuthState(auth);
@@ -12,9 +13,13 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user) return;
 
+    // Query for trees that the user owns OR are public
     const q = query(
-      collection(db, 'skillTrees'), 
-      where('ownerId', '==', user.uid)
+      collection(db, 'skillTrees'),
+      or(
+        where('ownerId', '==', user.uid),
+        where('isPublic', '==', true)
+      )
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -65,14 +70,24 @@ export default function Dashboard() {
               >
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <TreeIcon className="w-6 h-6 text-blue-600" />
+                    <FolderIcon className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-semibold">{tree.title}</h3>
+                  <div>
+                    <h3 className="text-lg font-semibold">{tree.title}</h3>
+                    {tree.ownerId !== user.uid && (
+                      <p className="text-sm text-gray-500">Shared by {tree.ownerName || 'Anonymous'}</p>
+                    )}
+                  </div>
                 </div>
                 {tree.createdAt && (
                   <p className="text-sm text-gray-500">
                     Created: {new Date(tree.createdAt.toDate()).toLocaleDateString()}
                   </p>
+                )}
+                {!tree.isPublic && tree.ownerId === user.uid && (
+                  <span className="inline-block mt-2 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                    Private
+                  </span>
                 )}
               </Link>
             ))}
@@ -80,44 +95,5 @@ export default function Dashboard() {
         )}
       </div>
     </div>
-  );
-}
-
-// Add these SVG icons at the bottom of the file
-function PlusIcon(props) {
-  return (
-    <svg
-      {...props}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-      />
-    </svg>
-  );
-}
-
-function TreeIcon(props) {
-  return (
-    <svg
-      {...props}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"
-      />
-    </svg>
   );
 }

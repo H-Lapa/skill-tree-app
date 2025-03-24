@@ -21,6 +21,7 @@ export default function TreePage() {
   const [newTitle, setNewTitle] = useState('');
   const [nodes, setNodes] = useState([]);
   const [isAddingNode, setIsAddingNode] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
 
   // Refs for click outside handling
   const settingsSidebarRef = useRef(null);
@@ -43,6 +44,7 @@ export default function TreePage() {
         const treeData = treeSnap.data();
         setTreeTitle(treeData.title);
         setNodes(treeData.nodes || []);
+        setIsPublic(treeData.isPublic || false);
       }
     };
     fetchTree();
@@ -155,6 +157,10 @@ export default function TreePage() {
     }
   };
 
+  const handlePrivacyChange = (newIsPublic) => {
+    setIsPublic(newIsPublic);
+  };
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
@@ -227,21 +233,18 @@ export default function TreePage() {
         </div>
 
         {/* Settings Sidebar */}
-        <div className={`absolute right-0 top-0 h-full transform ${
-          showSettings ? 'translate-x-0' : 'translate-x-full'
-        } transition-transform duration-300 ease-in-out shadow-xl z-[1001]`} ref={settingsSidebarRef}>
-          <TreeSettingsSidebar
-            onClose={() => setShowSettings(false)}
-            onRename={() => {
-              setShowRenameModal(true);
-              setShowSettings(false);
-            }}
-            onDelete={() => {
-              setShowDeleteModal(true);
-              setShowSettings(false);
-            }}
-          />
-        </div>
+        {showSettings && (
+          <div ref={settingsSidebarRef} className="absolute right-0 top-0 h-full">
+            <TreeSettingsSidebar
+              onClose={() => setShowSettings(false)}
+              onRename={() => setShowRenameModal(true)}
+              onDelete={() => setShowDeleteModal(true)}
+              treeId={id}
+              isPublic={isPublic}
+              onPrivacyChange={handlePrivacyChange}
+            />
+          </div>
+        )}
       </div>
 
       {/* Rename Modal */}

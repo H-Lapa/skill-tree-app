@@ -11,6 +11,7 @@ export default function NewTreePage() {
   const [user] = useAuthState(auth);
   const router = useRouter();
   const [title, setTitle] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -49,6 +50,7 @@ export default function NewTreePage() {
       const newTree = {
         title: title.trim(),
         ownerId: user.uid,
+        isPublic: isPublic,
         nodes: [rootNode],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -86,6 +88,28 @@ export default function NewTreePage() {
               disabled={loading}
               required
             />
+          </div>
+
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+            <div>
+              <h3 className="text-sm font-medium text-gray-900">Privacy Settings</h3>
+              <p className="text-xs text-gray-500">
+                {isPublic ? 'Anyone can view this tree' : 'Only you can view this tree'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsPublic(!isPublic)}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
+                isPublic ? 'bg-indigo-600' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  isPublic ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
           </div>
 
           {error && (
